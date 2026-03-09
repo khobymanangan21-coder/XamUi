@@ -1,5 +1,4 @@
 local Library = {}
-
 local UIS = game:GetService("UserInputService")
 
 function Library:CreateWindow(title)
@@ -7,7 +6,8 @@ function Library:CreateWindow(title)
     local player = game.Players.LocalPlayer
     local gui = Instance.new("ScreenGui")
     gui.Name = "KhobyUI"
-    gui.Parent = player.PlayerGui
+    gui.ResetOnSpawn = false
+    gui.Parent = player:WaitForChild("PlayerGui")
 
     local main = Instance.new("Frame")
     main.Size = UDim2.new(0,520,0,360)
@@ -22,9 +22,10 @@ function Library:CreateWindow(title)
     titleLabel.BackgroundTransparency = 1
     titleLabel.Parent = main
 
-    -- draggable window
+    -- Drag system
     local dragging = false
-    local dragInput, dragStart, startPos
+    local dragStart
+    local startPos
 
     titleLabel.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
@@ -58,6 +59,9 @@ function Library:CreateWindow(title)
     tabButtons.BackgroundColor3 = Color3.fromRGB(40,40,40)
     tabButtons.Parent = main
 
+    local tabLayout = Instance.new("UIListLayout")
+    tabLayout.Parent = tabButtons
+
     local container = Instance.new("Frame")
     container.Size = UDim2.new(1,-120,1,-40)
     container.Position = UDim2.new(0,120,0,40)
@@ -75,12 +79,19 @@ function Library:CreateWindow(title)
 
         local tabFrame = Instance.new("ScrollingFrame")
         tabFrame.Size = UDim2.new(1,0,1,0)
+        tabFrame.CanvasSize = UDim2.new(0,0,0,0)
         tabFrame.Visible = false
         tabFrame.Parent = container
 
+        local layout = Instance.new("UIListLayout")
+        layout.Padding = UDim.new(0,5)
+        layout.Parent = tabFrame
+
         tabButton.MouseButton1Click:Connect(function()
             for _,v in pairs(container:GetChildren()) do
-                v.Visible = false
+                if v:IsA("ScrollingFrame") then
+                    v.Visible = false
+                end
             end
             tabFrame.Visible = true
         end)
@@ -115,37 +126,43 @@ function Library:CreateWindow(title)
 
         function tab:CreateSlider(text,min,max,callback)
 
+            local value = min
+
             local slider = Instance.new("TextButton")
             slider.Size = UDim2.new(1,-10,0,35)
-            slider.Text = text.." : "..min
+            slider.Text = text.." : "..value
             slider.Parent = tabFrame
 
             slider.MouseButton1Click:Connect(function()
-
-                local value = math.random(min,max)
+                value = value + 1
+                if value > max then
+                    value = min
+                end
 
                 slider.Text = text.." : "..value
-
                 callback(value)
-
             end)
         end
 
         function tab:CreateDropdown(text,list,callback)
 
+            local index = 1
+
             local drop = Instance.new("TextButton")
             drop.Size = UDim2.new(1,-10,0,35)
-            drop.Text = text
+            drop.Text = text.." : "..list[index]
             drop.Parent = tabFrame
 
             drop.MouseButton1Click:Connect(function()
 
-                local choice = list[math.random(1,#list)]
+                index = index + 1
+                if index > #list then
+                    index = 1
+                end
 
-                drop.Text = text.." : "..choice
+                drop.Text = text.." : "..list[index]
 
-                callback(choice)
-
+                callback(list[index])
             end)
 
         end
@@ -153,11 +170,9 @@ function Library:CreateWindow(title)
         function tab:CreateKeybind(text,key,callback)
 
             UIS.InputBegan:Connect(function(input)
-
                 if input.KeyCode == key then
                     callback()
                 end
-
             end)
 
         end
@@ -175,9 +190,9 @@ function Library:CreateWindow(title)
         notif.Text = text
         notif.Parent = gui
 
-        task.wait(3)
-
-        notif:Destroy()
+        task.delay(3,function()
+            notif:Destroy()
+        end)
 
     end
 
@@ -185,6 +200,4 @@ function Library:CreateWindow(title)
 
 end
 
-return function()
-    return Library
-end
+return Library
