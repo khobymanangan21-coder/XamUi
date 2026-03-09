@@ -1,456 +1,149 @@
+-- KhobyUI Library
+local KhobyUI = {}
+KhobyUI.__index = KhobyUI
+
 local UIS = game:GetService("UserInputService")
-local player = game.Players.LocalPlayer
+local Players = game:GetService("Players")
 
-local gui = Instance.new("ScreenGui")
-gui.Name = "KhobyUI"
-gui.ResetOnSpawn = false
-gui.Parent = player:WaitForChild("PlayerGui")
+function KhobyUI:CreateWindow(title)
 
-local main = Instance.new("Frame")
-main.Size = UDim2.new(0,600,0,420)
-main.Position = UDim2.new(0.5,-300,0.5,-210)
-main.BackgroundColor3 = Color3.fromRGB(25,25,25)
-main.Parent = gui
+    local player = Players.LocalPlayer
 
-local top = Instance.new("Frame")
-top.Size = UDim2.new(1,0,0,40)
-top.BackgroundColor3 = Color3.fromRGB(35,35,35)
-top.Parent = main
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "KhobyUI"
+    gui.ResetOnSpawn = false
+    gui.Parent = player.PlayerGui
 
-local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1,-40,1,0)
-title.Text = "Khoby UI V3"
-title.TextColor3 = Color3.new(1,1,1)
-title.BackgroundTransparency = 1
-title.Parent = top
+    local main = Instance.new("Frame")
+    main.Size = UDim2.new(0,500,0,350)
+    main.Position = UDim2.new(0.5,-250,0.5,-175)
+    main.BackgroundColor3 = Color3.fromRGB(25,25,25)
+    main.Parent = gui
 
-local minimize = Instance.new("TextButton")
-minimize.Size = UDim2.new(0,40,1,0)
-minimize.Position = UDim2.new(1,-40,0,0)
-minimize.Text = "-"
-minimize.BackgroundTransparency = 1
-minimize.TextColor3 = Color3.new(1,1,1)
-minimize.Parent = top
+    local titleLabel = Instance.new("TextLabel")
+    titleLabel.Size = UDim2.new(1,0,0,40)
+    titleLabel.Text = title or "Khoby UI"
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.TextColor3 = Color3.new(1,1,1)
+    titleLabel.Font = Enum.Font.GothamBold
+    titleLabel.TextSize = 22
+    titleLabel.Parent = main
 
-local minimized = false
-minimize.MouseButton1Click:Connect(function()
-minimized = not minimized
-for _,v in pairs(main:GetChildren()) do
-if v ~= top then
-v.Visible = not minimized
-end
-end
-end)
+    -- DRAG SYSTEM
+    local dragging = false
+    local dragInput, dragStart, startPos
 
--- Drag
-local dragging = false
-local dragStart
-local startPos
+    main.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = main.Position
+        end
+    end)
 
-top.InputBegan:Connect(function(input)
-if input.UserInputType == Enum.UserInputType.MouseButton1 then
-dragging = true
-dragStart = input.Position
-startPos = main.Position
-end
-end)
+    main.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
 
-top.InputEnded:Connect(function(input)
-if input.UserInputType == Enum.UserInputType.MouseButton1 then
-dragging = false
-end
-end)
+    UIS.InputChanged:Connect(function(input)
+        if dragging then
+            local delta = input.Position - dragStart
+            main.Position = UDim2.new(
+                startPos.X.Scale,
+                startPos.X.Offset + delta.X,
+                startPos.Y.Scale,
+                startPos.Y.Offset + delta.Y
+            )
+        end
+    end)
 
-UIS.InputChanged:Connect(function(input)
-if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-local delta = input.Position - dragStart
-main.Position = UDim2.new(
-startPos.X.Scale,
-startPos.X.Offset + delta.X,
-startPos.Y.Scale,
-startPos.Y.Offset + delta.Y
-)
-end
-end)
+    local container = Instance.new("Frame")
+    container.Size = UDim2.new(1,-20,1,-60)
+    container.Position = UDim2.new(0,10,0,50)
+    container.BackgroundTransparency = 1
+    container.Parent = main
 
--- Tab buttons
-local tabButtons = Instance.new("Frame")
-tabButtons.Size = UDim2.new(0,150,1,-40)
-tabButtons.Position = UDim2.new(0,0,0,40)
-tabButtons.BackgroundColor3 = Color3.fromRGB(30,30,30)
-tabButtons.Parent = main
+    local layout = Instance.new("UIListLayout")
+    layout.Padding = UDim.new(0,6)
+    layout.Parent = container
 
-local tabLayout = Instance.new("UIListLayout")
-tabLayout.Parent = tabButtons
+    local Window = {}
 
-local container = Instance.new("Frame")
-container.Size = UDim2.new(1,-150,1,-40)
-container.Position = UDim2.new(0,150,0,40)
-container.BackgroundTransparency = 1
-container.Parent = main
+    function Window:Button(text,callback)
 
-local function CreateTab(name)
+        local btn = Instance.new("TextButton")
+        btn.Size = UDim2.new(1,0,0,35)
+        btn.Text = text
+        btn.BackgroundColor3 = Color3.fromRGB(40,40,40)
+        btn.TextColor3 = Color3.new(1,1,1)
+        btn.Font = Enum.Font.Gotham
+        btn.TextSize = 16
+        btn.Parent = container
 
-local tabBtn = Instance.new("TextButton")
-tabBtn.Size = UDim2.new(1,0,0,35)
-tabBtn.Text = name
-tabBtn.TextColor3 = Color3.new(1,1,1)
-tabBtn.BackgroundColor3 = Color3.fromRGB(45,45,45)
-tabBtn.Parent = tabButtons
+        btn.MouseButton1Click:Connect(function()
+            callback()
+        end)
 
-local tabFrame = Instance.new("ScrollingFrame")
-tabFrame.Size = UDim2.new(1,0,1,0)
-tabFrame.Visible = false
-tabFrame.BackgroundTransparency = 1
-tabFrame.Parent = container
+    end
 
-local layout = Instance.new("UIListLayout")
-layout.Padding = UDim.new(0,6)
-layout.Parent = tabFrame
+    function Window:Toggle(text,callback)
 
-tabBtn.MouseButton1Click:Connect(function()
-for _,v in pairs(container:GetChildren()) do
-if v:IsA("ScrollingFrame") then
-v.Visible = false
-end
-end
-tabFrame.Visible = true
-end)
+        local toggled = false
 
-return tabFrame
-end
+        local btn = Instance.new("TextButton")
+        btn.Size = UDim2.new(1,0,0,35)
+        btn.Text = text.." : OFF"
+        btn.BackgroundColor3 = Color3.fromRGB(40,40,40)
+        btn.TextColor3 = Color3.new(1,1,1)
+        btn.Parent = container
 
--- Main Tab
-local mainTab = CreateTab("Main")
+        btn.MouseButton1Click:Connect(function()
 
-local button = Instance.new("TextButton")
-button.Size = UDim2.new(1,-10,0,35)
-button.Text = "Print Hello"
-button.BackgroundColor3 = Color3.fromRGB(50,50,50)
-button.TextColor3 = Color3.new(1,1,1)
-button.Parent = mainTab
+            toggled = not toggled
 
-button.MouseButton1Click:Connect(function()
-print("Hello from Khoby UI")
-end)
+            if toggled then
+                btn.Text = text.." : ON"
+            else
+                btn.Text = text.." : OFF"
+            end
 
-local toggleState = false
+            callback(toggled)
 
-local toggle = Instance.new("TextButton")
-toggle.Size = UDim2.new(1,-10,0,35)
-toggle.Text = "Auto Farm : OFF"
-toggle.BackgroundColor3 = Color3.fromRGB(50,50,50)
-toggle.TextColor3 = Color3.new(1,1,1)
-toggle.Parent = mainTab
+        end)
 
-toggle.MouseButton1Click:Connect(function()
+    end
 
-toggleState = not toggleState
+    function Window:Slider(text,min,max,callback)
 
-toggle.Text = "Auto Farm : "..(toggleState and "ON" or "OFF")
+        local slider = Instance.new("TextButton")
+        slider.Size = UDim2.new(1,0,0,35)
+        slider.BackgroundColor3 = Color3.fromRGB(40,40,40)
+        slider.TextColor3 = Color3.new(1,1,1)
+        slider.Text = text.." : "..min
+        slider.Parent = container
 
-print("AutoFarm:",toggleState)
+        local value = min
 
-end)
+        slider.MouseButton1Click:Connect(function()
 
--- Show first tab
-mainTab.Visible = true
-local minimized = false
-minimize.MouseButton1Click:Connect(function()
-minimized = not minimized
-for _,v in pairs(main:GetChildren()) do
-if v ~= top then
-v.Visible = not minimized
-end
-end
-end)
+            value = value + 1
+            if value > max then value = min end
 
--- Dragging
-local dragging = false
-local dragStart
-local startPos
+            slider.Text = text.." : "..value
 
-top.InputBegan:Connect(function(input)
-if input.UserInputType == Enum.UserInputType.MouseButton1 then
-dragging = true
-dragStart = input.Position
-startPos = main.Position
-end
-end)
+            callback(value)
 
-top.InputEnded:Connect(function(input)
-if input.UserInputType == Enum.UserInputType.MouseButton1 then
-dragging = false
-end
-end)
+        end)
 
-UIS.InputChanged:Connect(function(input)
-if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-local delta = input.Position - dragStart
-main.Position = UDim2.new(
-startPos.X.Scale,
-startPos.X.Offset + delta.X,
-startPos.Y.Scale,
-startPos.Y.Offset + delta.Y
-)
-end
-end)
+    end
 
-local tabButtons = Instance.new("Frame")
-tabButtons.Size = UDim2.new(0,150,1,-40)
-tabButtons.Position = UDim2.new(0,0,0,40)
-tabButtons.BackgroundColor3 = Color3.fromRGB(30,30,30)
-tabButtons.Parent = main
-
-local tabLayout = Instance.new("UIListLayout")
-tabLayout.Parent = tabButtons
-
-local container = Instance.new("Frame")
-container.Size = UDim2.new(1,-150,1,-40)
-container.Position = UDim2.new(0,150,0,40)
-container.BackgroundTransparency = 1
-container.Parent = main
-
-local window = {}
-
-function window:CreateTab(name)
-
-local tabBtn = Instance.new("TextButton")
-tabBtn.Size = UDim2.new(1,0,0,35)
-tabBtn.Text = name
-tabBtn.TextColor3 = Color3.new(1,1,1)
-tabBtn.BackgroundColor3 = Color3.fromRGB(45,45,45)
-tabBtn.Parent = tabButtons
-
-local tabFrame = Instance.new("ScrollingFrame")
-tabFrame.Size = UDim2.new(1,0,1,0)
-tabFrame.Visible = false
-tabFrame.CanvasSize = UDim2.new(0,0,0,0)
-tabFrame.BackgroundTransparency = 1
-tabFrame.Parent = container
-
-local layout = Instance.new("UIListLayout")
-layout.Padding = UDim.new(0,6)
-layout.Parent = tabFrame
-
-tabBtn.MouseButton1Click:Connect(function()
-
-for _,v in pairs(container:GetChildren()) do
-if v:IsA("ScrollingFrame") then
-v.Visible = false
-end
-end
-
-tabFrame.Visible = true
-
-end)
-
-local tab = {}
-
-function tab:CreateSection(name)
-
-local label = Instance.new("TextLabel")
-label.Size = UDim2.new(1,-10,0,30)
-label.Text = name
-label.TextColor3 = Color3.fromRGB(200,200,200)
-label.BackgroundTransparency = 1
-label.Parent = tabFrame
+    return Window
 
 end
 
-function tab:CreateButton(text,callback)
-
-local btn = Instance.new("TextButton")
-btn.Size = UDim2.new(1,-10,0,35)
-btn.Text = text
-btn.BackgroundColor3 = Color3.fromRGB(50,50,50)
-btn.TextColor3 = Color3.new(1,1,1)
-btn.Parent = tabFrame
-
-btn.MouseButton1Click:Connect(callback)
-
-end
-
-function tab:CreateToggle(text,callback)
-
-local state = false
-
-local toggle = Instance.new("TextButton")
-toggle.Size = UDim2.new(1,-10,0,35)
-toggle.Text = text.." : OFF"
-toggle.BackgroundColor3 = Color3.fromRGB(50,50,50)
-toggle.TextColor3 = Color3.new(1,1,1)
-toggle.Parent = tabFrame
-
-toggle.MouseButton1Click:Connect(function()
-
-state = not state
-
-toggle.Text = text.." : "..(state and "ON" or "OFF")
-
-callback(state)
-
-end)
-
-end
-
-function tab:CreateSlider(text,min,max,callback)
-
-local value = min
-
-local slider = Instance.new("TextButton")
-slider.Size = UDim2.new(1,-10,0,35)
-slider.Text = text.." : "..value
-slider.BackgroundColor3 = Color3.fromRGB(50,50,50)
-slider.TextColor3 = Color3.new(1,1,1)
-slider.Parent = tabFrame
-
-slider.MouseButton1Click:Connect(function()
-
-value = value + 1
-
-if value > max then
-value = min
-end
-
-slider.Text = text.." : "..value
-
-callback(value)
-
-end)
-
-end
-
-function tab:CreateDropdown(text,list,callback)
-
-local index = 1
-
-local drop = Instance.new("TextButton")
-drop.Size = UDim2.new(1,-10,0,35)
-drop.Text = text.." : "..list[index]
-drop.BackgroundColor3 = Color3.fromRGB(50,50,50)
-drop.TextColor3 = Color3.new(1,1,1)
-drop.Parent = tabFrame
-
-drop.MouseButton1Click:Connect(function()
-
-index = index + 1
-
-if index > #list then
-index = 1
-end
-
-drop.Text = text.." : "..list[index]
-
-callback(list[index])
-
-end)
-
-end
-
-function tab:CreateKeybind(key,callback)
-
-UIS.InputBegan:Connect(function(input)
-
-if input.KeyCode == key then
-callback()
-end
-
-end)
-
-end
-
-return tab
-
-end
-
-function Library:Notify(text)
-
-local notif = Instance.new("TextLabel")
-notif.Size = UDim2.new(0,260,0,40)
-notif.Position = UDim2.new(1,-270,1,-60)
-notif.BackgroundColor3 = Color3.fromRGB(40,40,40)
-notif.TextColor3 = Color3.new(1,1,1)
-notif.Text = text
-notif.Parent = gui
-
-task.wait(3)
-
-notif:Destroy()
-
-end
-
-return window
-end
-
-return Library
-titleBar.InputEnded:Connect(function(input)
-if input.UserInputType == Enum.UserInputType.MouseButton1 then
-dragging = false
-end
-end)
-
-UIS.InputChanged:Connect(function(input)
-if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-local delta = input.Position - dragStart
-main.Position = UDim2.new(
-startPos.X.Scale,
-startPos.X.Offset + delta.X,
-startPos.Y.Scale,
-startPos.Y.Offset + delta.Y
-)
-end
-end)
-
-local tabButtons = Instance.new("Frame")
-tabButtons.Size = UDim2.new(0,140,1,-40)
-tabButtons.Position = UDim2.new(0,0,0,40)
-tabButtons.BackgroundColor3 = Color3.fromRGB(30,30,30)
-tabButtons.Parent = main
-
-local tabLayout = Instance.new("UIListLayout")
-tabLayout.Parent = tabButtons
-
-local container = Instance.new("Frame")
-container.Size = UDim2.new(1,-140,1,-40)
-container.Position = UDim2.new(0,140,0,40)
-container.BackgroundTransparency = 1
-container.Parent = main
-
-local window = {}
-
-function window:CreateTab(name)
-
-local tabBtn = Instance.new("TextButton")
-tabBtn.Size = UDim2.new(1,0,0,35)
-tabBtn.Text = name
-tabBtn.BackgroundColor3 = Color3.fromRGB(45,45,45)
-tabBtn.TextColor3 = Color3.new(1,1,1)
-tabBtn.Parent = tabButtons
-
-local tabFrame = Instance.new("ScrollingFrame")
-tabFrame.Size = UDim2.new(1,0,1,0)
-tabFrame.Visible = false
-tabFrame.CanvasSize = UDim2.new(0,0,0,0)
-tabFrame.BackgroundTransparency = 1
-tabFrame.Parent = container
-
-local layout = Instance.new("UIListLayout")
-layout.Padding = UDim.new(0,6)
-layout.Parent = tabFrame
-
-tabBtn.MouseButton1Click:Connect(function()
-for _,v in pairs(container:GetChildren()) do
-if v:IsA("ScrollingFrame") then
-v.Visible = false
-end
-end
-tabFrame.Visible = true
-end)
-
-local tab = {}
-
-function tab:CreateSection(name)
+return KhobyUI)
 
 local label = Instance.new("TextLabel")
 label.Size = UDim2.new(1,-10,0,30)
