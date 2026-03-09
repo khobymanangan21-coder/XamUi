@@ -1,11 +1,8 @@
-local Library = {}
 local UIS = game:GetService("UserInputService")
-
-function Library:CreateWindow(title)
-
 local player = game.Players.LocalPlayer
+
 local gui = Instance.new("ScreenGui")
-gui.Name = "KhobyUI_V3"
+gui.Name = "KhobyUI"
 gui.ResetOnSpawn = false
 gui.Parent = player:WaitForChild("PlayerGui")
 
@@ -20,21 +17,144 @@ top.Size = UDim2.new(1,0,0,40)
 top.BackgroundColor3 = Color3.fromRGB(35,35,35)
 top.Parent = main
 
-local titleLabel = Instance.new("TextLabel")
-titleLabel.Size = UDim2.new(1,-40,1,0)
-titleLabel.Text = title
-titleLabel.TextColor3 = Color3.new(1,1,1)
-titleLabel.BackgroundTransparency = 1
-titleLabel.Parent = top
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1,-40,1,0)
+title.Text = "Khoby UI V3"
+title.TextColor3 = Color3.new(1,1,1)
+title.BackgroundTransparency = 1
+title.Parent = top
 
 local minimize = Instance.new("TextButton")
 minimize.Size = UDim2.new(0,40,1,0)
 minimize.Position = UDim2.new(1,-40,0,0)
 minimize.Text = "-"
-minimize.TextColor3 = Color3.new(1,1,1)
 minimize.BackgroundTransparency = 1
+minimize.TextColor3 = Color3.new(1,1,1)
 minimize.Parent = top
 
+local minimized = false
+minimize.MouseButton1Click:Connect(function()
+minimized = not minimized
+for _,v in pairs(main:GetChildren()) do
+if v ~= top then
+v.Visible = not minimized
+end
+end
+end)
+
+-- Drag
+local dragging = false
+local dragStart
+local startPos
+
+top.InputBegan:Connect(function(input)
+if input.UserInputType == Enum.UserInputType.MouseButton1 then
+dragging = true
+dragStart = input.Position
+startPos = main.Position
+end
+end)
+
+top.InputEnded:Connect(function(input)
+if input.UserInputType == Enum.UserInputType.MouseButton1 then
+dragging = false
+end
+end)
+
+UIS.InputChanged:Connect(function(input)
+if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+local delta = input.Position - dragStart
+main.Position = UDim2.new(
+startPos.X.Scale,
+startPos.X.Offset + delta.X,
+startPos.Y.Scale,
+startPos.Y.Offset + delta.Y
+)
+end
+end)
+
+-- Tab buttons
+local tabButtons = Instance.new("Frame")
+tabButtons.Size = UDim2.new(0,150,1,-40)
+tabButtons.Position = UDim2.new(0,0,0,40)
+tabButtons.BackgroundColor3 = Color3.fromRGB(30,30,30)
+tabButtons.Parent = main
+
+local tabLayout = Instance.new("UIListLayout")
+tabLayout.Parent = tabButtons
+
+local container = Instance.new("Frame")
+container.Size = UDim2.new(1,-150,1,-40)
+container.Position = UDim2.new(0,150,0,40)
+container.BackgroundTransparency = 1
+container.Parent = main
+
+local function CreateTab(name)
+
+local tabBtn = Instance.new("TextButton")
+tabBtn.Size = UDim2.new(1,0,0,35)
+tabBtn.Text = name
+tabBtn.TextColor3 = Color3.new(1,1,1)
+tabBtn.BackgroundColor3 = Color3.fromRGB(45,45,45)
+tabBtn.Parent = tabButtons
+
+local tabFrame = Instance.new("ScrollingFrame")
+tabFrame.Size = UDim2.new(1,0,1,0)
+tabFrame.Visible = false
+tabFrame.BackgroundTransparency = 1
+tabFrame.Parent = container
+
+local layout = Instance.new("UIListLayout")
+layout.Padding = UDim.new(0,6)
+layout.Parent = tabFrame
+
+tabBtn.MouseButton1Click:Connect(function()
+for _,v in pairs(container:GetChildren()) do
+if v:IsA("ScrollingFrame") then
+v.Visible = false
+end
+end
+tabFrame.Visible = true
+end)
+
+return tabFrame
+end
+
+-- Main Tab
+local mainTab = CreateTab("Main")
+
+local button = Instance.new("TextButton")
+button.Size = UDim2.new(1,-10,0,35)
+button.Text = "Print Hello"
+button.BackgroundColor3 = Color3.fromRGB(50,50,50)
+button.TextColor3 = Color3.new(1,1,1)
+button.Parent = mainTab
+
+button.MouseButton1Click:Connect(function()
+print("Hello from Khoby UI")
+end)
+
+local toggleState = false
+
+local toggle = Instance.new("TextButton")
+toggle.Size = UDim2.new(1,-10,0,35)
+toggle.Text = "Auto Farm : OFF"
+toggle.BackgroundColor3 = Color3.fromRGB(50,50,50)
+toggle.TextColor3 = Color3.new(1,1,1)
+toggle.Parent = mainTab
+
+toggle.MouseButton1Click:Connect(function()
+
+toggleState = not toggleState
+
+toggle.Text = "Auto Farm : "..(toggleState and "ON" or "OFF")
+
+print("AutoFarm:",toggleState)
+
+end)
+
+-- Show first tab
+mainTab.Visible = true
 local minimized = false
 minimize.MouseButton1Click:Connect(function()
 minimized = not minimized
