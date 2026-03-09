@@ -1,0 +1,23 @@
+local Library = loadstring(game:HttpGet("YOUR_URL"))()
+
+local Window = Library:CreateWindow("KHOBY UI")
+
+local Main = Window:CreateTab("Main")
+
+Main:CreateButton("Print",function()
+    print("Hello")
+end)
+
+Main:CreateToggle("Auto Farm",function(v)
+    print(v)
+end)
+
+Main:CreateSlider("Speed",1,100,function(v)
+    print(v)
+end)
+
+Main:CreateDropdown("Select",{"A","B","C"},function(v)
+    print(v)
+end)
+
+Library:Notify("Loaded!")
